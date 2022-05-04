@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>ECE 4424 Final Project</title>
+        <script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+    </head>
+    <body>
+        <h1>ECE 4424 Final Project</h1>
+        <canvas id="canvas", name="draw" width="400" height="400" style="border: 10px solid #56904E">
+        <script>
+            var canvas, context;
+
+            canvas = document.getElementById('canvas');
+            context = canvas.getContext("2d");
+            drawing = false;
+            context.fillStyle = "#000000"
+            context.fillRect(0, 0, canvas.width, canvas.height);
+            canvas.addEventListener("mousemove",Draw)
+            canvas.addEventListener("mouseup",DrawDone);
+            canvas.addEventListener("mousedown",startDraw);
+            function startDraw()
+            {
+                drawing = true;
+            }
+            function DrawDone()
+            {
+                drawing = false;
+                context.beginPath();
+            }
+
+            function Draw(event)
+            {
+                context.lineWidth = 10;
+                context.lineCap = "round";
+                context.strokeStyle = '#FFFFFF'
+                if(drawing == false)
+                {
+                    return;
+                }
+                
+                context.lineTo(event.clientX-this.offsetLeft, event.clientY-this.offsetTop);
+                context.stroke();
+                context.beginPath();
+                context.moveTo(event.clientX-this.offsetLeft, event.clientY-this.offsetTop);
+            }
+            
+            function eraseDrawing()
+            {
+                context.clearRect(0,0,canvas.width,canvas.height);
+                context.fillStyle = "#000000"
+                context.fillRect(0, 0, canvas.width, canvas.height);
+            }
+            function getImage()
+            {
+                var img = new Image();
+                img.src = canvas.toDataURL();
+                // const request = new XMLHttpRequest();
+                // var temp = JSON.stringify(img.src);
+                // var temp1 = "Hi";
+                // request.open('POST','/ProcessUserInfo/'); //+temp
+                // request.send();
+                var xmlhttp = new XMLHttpRequest();   // new HttpRequest instance 
+                var theUrl = "/postmethod";
+                xmlhttp.open("POST", theUrl);
+                xmlhttp.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
+                xmlhttp.send(JSON.stringify({ "img": img.src.toString()}));
+                xmlhttp.onload  = function() {
+                    var jsonResponse = xmlhttp.response;
+                    var res =  JSON.parse(jsonResponse);
+                    document.getElementById("CNNpredtext").innerHTML=("The CNN predicts you drew : " + res["result1"]);
+                    document.getElementById("KNNpredtext").innerHTML=("The KNN predicts you drew : " + res["result"]);
+                };
+                //$.ajax({
+                //    type: "POST",
+                //    url: "http://http://5706-35-237-125-188.ngrok.io/postmethod",
+                //    data:{
+                //        javascript_data: temp
+                //    }
+                //})
+                
+            }
+            function CNNPredict()
+            {
+                getImage();
+                //var temp = localStorage.getItem("ImageURL");
+                
+
+                //add handler to get results await - async --> 
+            }
+        </script> 
+        </canvas>
+        <button id="erase" type="button" style="height: 50px; width: 70px;" onclick="eraseDrawing()">Erase Button</button>
+        <button id="CNNPredict" type="button" style="height: 50px; width: 70px;" onclick="CNNPredict()">CNN Predict</button>
+        <input type="hidden" id="img" name="img" >
+    </body>
+    <h1 style="font-size: 24px">Prediction Results:</h1>
+    <p>{{result}}</p>
+    <h1 id="CNNpredtext" style="font-size: 20px; font-weight: normal;"></h1>
+    <h1 id="KNNpredtext" style="font-size: 20px; font-weight: normal;"></h1>
+</html>
